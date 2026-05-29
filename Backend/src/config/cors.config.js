@@ -1,6 +1,6 @@
 /** Origins allowed to call this API (browser sends exact Origin, no trailing slash). */
 const ALLOWED_ORIGINS = new Set([
-  "https://gtp-clone-bk.vercel.app",
+  "https://gtp-clone-pi.vercel.app/",
   "http://localhost:2000",
   "http://localhost:5173",
   "http://127.0.0.1:2000",
