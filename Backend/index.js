@@ -5,13 +5,14 @@ import db from "./db/db_config.js";
 
 import cors from "cors";
 
+import { corsOptions } from "./src/config/cors.config.js";
 import { errorHandler } from "./src/middleware/error.handler.js";
 
 import mainRouter from "./src/api/main.routes.js";
 
 const app = express();
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api", mainRouter);

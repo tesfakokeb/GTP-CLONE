@@ -7,8 +7,7 @@ import ChatInput from './components/ChatInput/ChatInput';
 import './App.css';
 
 // Use Vite proxy in dev (/api → localhost:2000); override with VITE_API_BASE_URL if needed
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = "https://gtp-clone-bk.vercel.app/";
 
 function App() {
   const [conversations, setConversations] = useState([]);
