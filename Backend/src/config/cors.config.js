@@ -1,11 +1,25 @@
-/** Origins allowed to call this API (browser sends exact Origin, no trailing slash). */
-const ALLOWED_ORIGINS = new Set([
-  "https://gtp-clone-pi.vercel.app/",
+/** Origins allowed to call this API (browser Origin has no trailing slash). */
+function normalizeOrigin(origin) {
+  return origin?.trim().replace(/\/$/, "") ?? origin;
+}
+
+const DEFAULT_ORIGINS = [
+  "https://gtp-clone-pi.vercel.app",
+  "https://gtp-clone-bk.vercel.app",
   "http://localhost:2000",
   "http://localhost:5173",
   "http://127.0.0.1:2000",
   "http://127.0.0.1:5173",
-]);
+];
+
+const ALLOWED_ORIGINS = new Set(
+  [
+    ...DEFAULT_ORIGINS,
+    ...(process.env.CORS_ORIGINS || "").split(",").map((s) => s.trim()),
+  ]
+    .filter(Boolean)
+    .map(normalizeOrigin),
+);
 
 function isLocalhostOrigin(origin) {
   try {
@@ -14,10 +28,6 @@ function isLocalhostOrigin(origin) {
   } catch {
     return false;
   }
-}
-
-function normalizeOrigin(origin) {
-  return origin?.replace(/\/$/, "") ?? origin;
 }
 
 export function isOriginAllowed(origin) {
