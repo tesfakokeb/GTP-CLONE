@@ -5,9 +5,7 @@ import ChatHeader from './components/ChatHeader/ChatHeader';
 import MessageList from './components/MessageList/MessageList';
 import ChatInput from './components/ChatInput/ChatInput';
 import './App.css';
-
-// Use Vite proxy in dev (/api → localhost:2000); override with VITE_API_BASE_URL if needed
-const API_BASE_URL = "https://gtp-clone-bk.vercel.app/";
+import { apiUrl } from './api';
 
 function App() {
   const [conversations, setConversations] = useState([]);
@@ -28,7 +26,7 @@ function App() {
 
   const fetchConversations = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/chat/conversations`);
+      const response = await axios.get(apiUrl('/chat/conversations'));
       if (response.data.success) {
         setConversations(response.data.data?.conversations ?? []);
       }
@@ -48,7 +46,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/chat/conversations`, {
+      const response = await axios.post(apiUrl('/chat/conversations'), {
         question,
       });
       if (response.data.success) {
