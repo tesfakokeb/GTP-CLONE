@@ -22,17 +22,31 @@ app.use(errorHandler);
 
 async function startServer() {
   try {
-    const connection = await db.getConnection();
-    console.log('db conected');
-    connection.release();
+    // const connection = await db.getConnection();
+    // console.log('db conected');
+    // connection.release();
 
-    app.listen(2000, (err) => {
+    // app.listen(2000, (err) => {
+    //   if (err) {
+    //     console.log(err);
+    //   } else {
+    //     console.log("Server is running on http://localhost:2000");
+    //   }
+    // });
+
+    const PORT = process.env.PORT || 2000;
+
+    app.listen(PORT, (err) => {
       if (err) {
         console.log(err);
       } else {
-        console.log("Server is running on http://localhost:2000");
+        console.log(`Server is running on port ${PORT}`);
       }
     });
+
+
+
+
   } catch (error) {
     console.error("Failed to start the server:", error);
   }
