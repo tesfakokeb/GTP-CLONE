@@ -2,10 +2,27 @@ import db from "../../../../db/db_config.js";
 
 import { GoogleGenAI } from "@google/genai";
 
+function getGeminiSettings() {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const model = (
+    process.env.GEMINI_MODEL?.trim() || "gemini-2.0-flash"
+  ).replace(/^['"]|['"]$/g, "");
 
-const createGEMINIClient = () => {
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); 
-};
+  if (!apiKey) {
+    const error = new Error("Missing GEMINI_API_KEY in environment variables.");
+    error.status = 500;
+    throw error;
+  }
+
+  if (!model) {
+    const error = new Error("Missing GEMINI_MODEL in environment variables.");
+    error.status = 500;
+    throw error;
+  }
+
+  return { apiKey, model };
+}
+
 const extractTotalTokenCount = (response) => {
   const usageMetadata = response?.usageMetadata || {};
   const exlicitTotal = Number(usageMetadata.totalTokenCount || 0);
@@ -16,29 +33,6 @@ const extractTotalTokenCount = (response) => {
   const candidateTokenCount = Number(usageMetadata.candidateTokenCount || 0);
   return prompTokens + candidateTokenCount;
 };
-
-
-
-// const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
-// const UNSUPPORTED_CHAT_MODELS = new Set(["gemini-1.5-pro"]);
-// const configuredGeminiModel =
-//   process.env.GEMINI_MODEL?.trim().replace(/^['"]|['"]$/g, "") || "";
-
-// const GEMINI_MODEL =
-//   configuredGeminiModel && !UNSUPPORTED_CHAT_MODELS.has(configuredGeminiModel)
-//     ? configuredGeminiModel
-//     : DEFAULT_GEMINI_MODEL;
-
-// const GEMIN_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-
-
-
-const GEMINI_MODEL = (
-  process.env.GEMINI_MODEL || "gemini-2.0-flash"
-)
-  .trim()
-  .replace(/^['"]|['"]$/g, "");
-const genAIClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export const getRecentConversationsServiceRows = async (limit = 5) => {
   const normalizedLimit = Number.parseInt(limit, 10);
@@ -53,16 +47,16 @@ export const getRecentConversationsServiceRows = async (limit = 5) => {
   return rows.reverse();
 };
 
-
-
 const generateAssistantAnswer = async ({ historyRows = [], question }) => {
+  const { apiKey, model } = getGeminiSettings();
   const formattedHistory = (historyRows || []).map((row) => ({
     role: row.role === "assistant" ? "model" : "user",
     parts: [{ text: row.content }],
   }));
 
-  const chat = genAIClient.chats.create({
-    model: GEMINI_MODEL,
+  const client = new GoogleGenAI({ apiKey });
+  const chat = client.chats.create({
+    model,
     config: { maxOutputTokens: 1024 },
     history: formattedHistory,
   });
@@ -90,8 +84,6 @@ const getMessageById = async (messageId) => {
 };
 
 // Feactches all conversations
-
-
 
 // Validation
 
@@ -167,9 +159,6 @@ const getMessageById = async (messageId) => {
 //   }
 // }
 
-
-
-
 export async function createConversationService(question) {
   if (!question) {
     const error = new Error("Question is required");
@@ -198,7 +187,10 @@ export async function createConversationService(question) {
       assistantText = assistantReply.text;
       totalTokens = assistantReply.totalTokens;
     } catch (geminiError) {
-      console.error("Gemini request failed:", geminiError?.message || geminiError);
+      console.error(
+        "Gemini request failed:",
+        geminiError?.message || geminiError,
+      );
       const err = new Error(
         "Gemini request failed. Check GEMINI_API_KEY, GEMINI_MODEL, and API quota.",
       );
